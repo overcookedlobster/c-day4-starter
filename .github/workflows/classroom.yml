@@ -1,0 +1,97 @@
+name: Autograding Tests
+on: [push, workflow_dispatch, repository_dispatch]
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  build:
+    name: Autograding
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python for testing
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Compile C code
+        id: compile
+        run: make all
+        # This step uses the Makefile to compile all C source files.
+        # If compilation fails, the workflow will stop here.
+
+      # In-Class Assignment Tests (40 points)
+      - name: Test - Shape Calculator (Circle)
+        if: success() && steps.compile.outcome == 'success'
+        uses: education/autograding-test-reporter@v1
+        with:
+          test-name: Test - Shape Calculator (Circle)
+          command: 'python3 -m unittest tests.TestDay4C.test_shape_circle'
+          points: 10
+      
+      - name: Test - Shape Calculator (Rectangle)
+        if: success() && steps.compile.outcome == 'success'
+        uses: education/autograding-test-reporter@v1
+        with:
+          test-name: Test - Shape Calculator (Rectangle)
+          command: 'python3 -m unittest tests.TestDay4C.test_shape_rectangle'
+          points: 10
+
+      - name: Test - Shape Calculator (Triangle)
+        if: success() && steps.compile.outcome == 'success'
+        uses: education/autograding-test-reporter@v1
+        with:
+          test-name: Test - Shape Calculator (Triangle)
+          command: 'python3 -m unittest tests.TestDay4C.test_shape_triangle'
+          points: 10
+
+      - name: Test - Shape Calculator (Invalid)
+        if: success() && steps.compile.outcome == 'success'
+        uses: education/autograding-test-reporter@v1
+        with:
+          test-name: Test - Shape Calculator (Invalid)
+          command: 'python3 -m unittest tests.TestDay4C.test_shape_invalid'
+          points: 10
+
+      # Homework Assignment Tests (60 points)
+      - name: Test - Basic Calculator (Add, Subtract, Multiply)
+        if: success() && steps.compile.outcome == 'success'
+        uses: education/autograding-test-reporter@v1
+        with:
+          test-name: Test - Basic Calculator (Add, Subtract, Multiply)
+          command: |
+            python3 -m unittest tests.TestDay4C.test_calculator_add
+            python3 -m unittest tests.TestDay4C.test_calculator_subtract
+            python3 -m unittest tests.TestDay4C.test_calculator_multiply
+          points: 30
+
+      - name: Test - Basic Calculator (Divide)
+        if: success() && steps.compile.outcome == 'success'
+        uses: education/autograding-test-reporter@v1
+        with:
+          test-name: Test - Basic Calculator (Divide)
+          command: 'python3 -m unittest tests.TestDay4C.test_calculator_divide'
+          points: 15
+
+      - name: Test - Basic Calculator (Edge Cases)
+        if: success() && steps.compile.outcome == 'success'
+        uses: education/autograding-test-reporter@v1
+        with:
+          test-name: Test - Basic Calculator (Edge Cases)
+          command: |
+            python3 -m unittest tests.TestDay4C.test_calculator_div_by_zero
+            python3 -m unittest tests.TestDay4C.test_calculator_invalid_op
+          points: 15
+
+      # Final Reporter
+      - name: Autograding Reporter
+        uses: education/autograding-grader-results@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
